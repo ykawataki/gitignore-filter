@@ -1,4 +1,3 @@
-# src/gitignore_filter/utils/path.py
 from pathlib import Path
 from typing import List, Union
 

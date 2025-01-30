@@ -1,11 +1,9 @@
-# tests/utils/test_path.py
 import os
 from pathlib import Path
 
 import pytest
 
-from gitignore_filter.utils.path import (make_relative, normalize_path,
-                                         split_path)
+from gitignore_filter.utils.path import make_relative, normalize_path, split_path
 
 
 def test_normalize_path_basic():

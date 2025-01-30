@@ -1,0 +1,128 @@
+name: Version Bump and Release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "pyproject.toml"
+      - "src/**"
+      - ".github/workflows/release.yml"
+
+jobs:
+  version-bump:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install tomli tomli-w build twine
+          npm install -g conventional-changelog-cli semver
+
+      - name: Get latest version
+        id: get_version
+        run: |
+          # タグの存在確認とバージョン取得
+          if git describe --tags --abbrev=0 2>/dev/null; then
+            LATEST_TAG=$(git describe --tags --abbrev=0)
+            echo "Latest tag: $LATEST_TAG"
+            COMMITS=$(git log ${LATEST_TAG}..HEAD --format="%s")
+            LATEST_VERSION=${LATEST_TAG#v}
+            echo "Current version: $LATEST_VERSION"
+            
+            # conventional commitsからバージョンアップの種類を判断
+            BUMP_TYPE="patch"
+            
+            echo "$COMMITS" | while read -r commit; do
+              if [[ $commit == feat!:* ]] || [[ $commit == fix!:* ]] || [[ $commit == *"BREAKING CHANGE"* ]]; then
+                BUMP_TYPE="major"
+                break
+              elif [[ $commit == feat:* ]]; then
+                BUMP_TYPE="minor"
+              fi
+            done
+            
+            # 新しいバージョンを計算
+            NEW_VERSION=$(npx semver $LATEST_VERSION -i $BUMP_TYPE)
+          else
+            echo "No tags found. Starting with v0.1.0"
+            NEW_VERSION="0.1.0"
+          fi
+
+          echo "New version will be: v$NEW_VERSION"
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Update version in files
+        run: |
+          NEW_VERSION="${{ steps.get_version.outputs.new_version }}"
+
+          # pyproject.tomlの更新
+          python - <<EOF
+          import tomli, tomli_w
+          with open('pyproject.toml', 'rb') as f:
+              data = tomli.load(f)
+          data['project']['version'] = '$NEW_VERSION'
+          with open('pyproject.toml', 'wb') as f:
+              tomli_w.dump(data, f)
+          EOF
+
+          # __init__.pyの更新
+          sed -i "s/__version__ = \".*\"/__version__ = \"$NEW_VERSION\"/" src/gitignore_filter/__init__.py
+
+      - name: Generate changelog
+        run: |
+          conventional-changelog -p angular -i CHANGELOG.md -s -r 0
+
+      - name: Create version commit
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add pyproject.toml src/gitignore_filter/__init__.py CHANGELOG.md
+          git commit -m "chore(release): bump version to ${{ steps.get_version.outputs.new_version }}"
+
+      - name: Create and push tag
+        run: |
+          NEW_VERSION=${{ steps.get_version.outputs.new_version }}
+          git tag -a "v${NEW_VERSION}" -m "Release v${NEW_VERSION}"
+          git push origin main --tags
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.get_version.outputs.new_version }}
+          name: Release v${{ steps.get_version.outputs.new_version }}
+          body_path: CHANGELOG.md
+          draft: false
+          prerelease: false
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # PyPIへの公開ステップ
+      - name: Build package
+        run: |
+          python -m build
+
+      - name: Publish to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          pip install twine
+          twine upload dist/*
