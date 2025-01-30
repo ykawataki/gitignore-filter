@@ -75,7 +75,7 @@ class GitIgnoreScanner:
             if is_dir:
                 matches = pattern.match_directory(path)
             else:
-                matches = pattern.match_file(path)
+                matches = pattern.match(path)
 
             if pattern.negated and matches:
                 matched = False
