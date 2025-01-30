@@ -83,8 +83,13 @@ def test_is_ignored_basic(scanner, tmp_path):
 
     # 通常のテキストファイルは無視される
     test_file = tmp_path / 'test.txt'
-    result = scanner.is_ignored(test_file)
+    result = scanner.is_ignored(str(test_file))
     assert result
+
+    # 重要なテキストファイルは無視されない
+    important_file = tmp_path / 'important.txt'
+    result = scanner.is_ignored(str(important_file))
+    assert not result
 
 
 def test_is_ignored_directory(scanner, tmp_path):
@@ -94,11 +99,50 @@ def test_is_ignored_directory(scanner, tmp_path):
     # ディレクトリは無視される
     temp_dir = tmp_path / 'temp'
     temp_dir.mkdir()
-    assert scanner.is_ignored(temp_dir)
+    assert scanner.is_ignored(str(temp_dir))
 
     # ファイルは無視されない
     temp_file = tmp_path / 'temp.txt'
-    assert not scanner.is_ignored(temp_file)
+    assert not scanner.is_ignored(str(temp_file))
+
+
+def test_is_ignored_directory_patterns(scanner, tmp_path):
+    """様々なディレクトリパターンの無視判定テスト"""
+    patterns = [
+        'dist/',            # 基本的なディレクトリパターン
+        '**/build/',        # 再帰的なディレクトリパターン
+        'temp/**/',         # ディレクトリ以下すべて
+        'docs/*/temp/',     # 中間ディレクトリを含むパターン
+        '!dist/release/'    # 除外パターン
+    ]
+    scanner.add_patterns(patterns)
+
+    # パターンごとのテスト
+    test_cases = [
+        ('dist', True),                    # distディレクトリは無視
+        ('dist/file.txt', True),           # dist配下のファイルも無視
+        ('dist/release/file.txt', False),  # dist/release配下も無視しない
+        ('src/dist', True),               # src/distは無視しない
+        ('build', True),                   # buildディレクトリは無視
+        ('src/build', True),               # src/buildも無視
+        ('temp', True),                    # tempディレクトリは無視
+        ('temp/subdir', True),             # temp配下のディレクトリも無視
+        ('docs/v1/temp', True),            # docs/*/tempパターンにマッチ
+        ('docs/temp', False),              # docs/tempは無視しない
+    ]
+
+    for path, should_ignore in test_cases:
+        test_path = tmp_path / path
+        if str(test_path).endswith(('/dist', '/build', '/temp')):
+            # ディレクトリとして判定させるためにディレクトリを作成
+            test_path.mkdir(parents=True, exist_ok=True)
+        else:
+            # ファイルとして判定させるためにファイルを作成
+            test_path.parent.mkdir(parents=True, exist_ok=True)
+            test_path.touch()
+
+        result = scanner.is_ignored(str(path), base_path=tmp_path)
+        assert result == should_ignore, f"Expected is_ignored('{path}') to be {should_ignore}, but got {result}"
 
 
 def test_is_ignored_nested_patterns(scanner, tmp_path):
