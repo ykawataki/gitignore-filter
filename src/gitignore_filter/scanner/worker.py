@@ -128,10 +128,6 @@ class WorkerScanner:
                     f"Converting path: {path} relative to {self.root_dir}")
                 rel_path = path.relative_to(self.root_dir)
 
-                # 隠しファイル/ディレクトリは除外
-                if entry.name.startswith('.'):
-                    continue
-
                 if entry.is_dir() and not entry.is_symlink():
                     dirs.append(path)
                 elif entry.is_file() and not entry.is_symlink():
@@ -161,24 +157,36 @@ class WorkerScanner:
             if root_patterns:
                 scanner.ignore_scanner.add_patterns(root_patterns)
 
-            # サブディレクトリの.gitignoreを読み込む
-            ignore_path = directory_path / '.gitignore'
-            if ignore_path.is_file():
-                with open(ignore_path, 'r', encoding='utf-8') as f:
-                    patterns = [line.strip() for line in f if line.strip()
-                                and not line.startswith('#')]
-                    if patterns:
-                        scanner.ignore_scanner.add_patterns(
-                            patterns, str(directory_path.relative_to(root_path)))
+            def scan_recursive(current_dir: Path) -> None:
+                # 現在のディレクトリの.gitignoreを読み込む
+                ignore_path = current_dir / '.gitignore'
+                if ignore_path.is_file():
+                    with open(ignore_path, 'r', encoding='utf-8') as f:
+                        patterns = [line.strip() for line in f if line.strip()
+                                    and not line.startswith('#')]
+                        if patterns:
+                            rel_dir = str(current_dir.relative_to(root_path))
+                            scanner.ignore_scanner.add_patterns(
+                                patterns, rel_dir)
 
-            # ディレクトリ内のファイルを走査
-            for entry in os.scandir(directory_path):
-                if entry.is_file() and not entry.is_symlink():
-                    file_path = Path(entry.path)
-                    rel_path = file_path.relative_to(root_path)
-                    if not scanner.is_ignored(rel_path):
-                        result_paths.add(str(rel_path))
+                # ディレクトリ内のエントリーを走査
+                for entry in os.scandir(current_dir):
+                    if entry.is_symlink():
+                        continue
 
+                    entry_path = Path(entry.path)
+                    rel_path = entry_path.relative_to(root_path)
+
+                    if entry.is_file():
+                        if not scanner.is_ignored(rel_path):
+                            result_paths.add(str(rel_path))
+                    elif entry.is_dir():
+                        # ディレクトリの場合は再帰的に処理
+                        if not scanner.is_ignored(rel_path):
+                            scan_recursive(entry_path)
+
+            # 再帰的なスキャンを開始
+            scan_recursive(directory_path)
             return result_paths
 
         except Exception as e:

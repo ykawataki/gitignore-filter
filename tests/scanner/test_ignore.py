@@ -122,18 +122,21 @@ def test_is_ignored_directory_patterns(scanner, tmp_path):
         ('dist', True),                    # distディレクトリは無視
         ('dist/file.txt', True),           # dist配下のファイルも無視
         ('dist/release/file.txt', False),  # dist/release配下も無視しない
-        ('src/dist', True),               # src/distは無視しない
+        ('src/dist', True),                # src/distは無視しない
         ('build', True),                   # buildディレクトリは無視
         ('src/build', True),               # src/buildも無視
         ('temp', True),                    # tempディレクトリは無視
         ('temp/subdir', True),             # temp配下のディレクトリも無視
         ('docs/v1/temp', True),            # docs/*/tempパターンにマッチ
         ('docs/temp', False),              # docs/tempは無視しない
+        ('dir1', False),                   # マッチしないパスは無視しない
+        ('dir1/dir2', False),              # マッチしないパスは無視しない
+        ('dir1/dir2/test.txt', False),     # マッチしないパスは無視しない
     ]
 
     for path, should_ignore in test_cases:
         test_path = tmp_path / path
-        if str(test_path).endswith(('/dist', '/build', '/temp')):
+        if str(test_path).endswith(('/dist', '/build', '/temp', '/dir1', '/dir2')):
             # ディレクトリとして判定させるためにディレクトリを作成
             test_path.mkdir(parents=True, exist_ok=True)
         else:
