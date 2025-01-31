@@ -46,24 +46,24 @@ jobs:
             BUMP_TYPE=""
             SHOULD_BUMP=false
             
-            echo "$COMMITS" | while read -r commit; do
-              # バージョンを進めないコミットタイプを定義
-              if [[ $commit == docs:* ]] || [[ $commit == style:* ]] || [[ $commit == test:* ]] || \
-                 [[ $commit == build:* ]] || [[ $commit == ci:* ]]; then
-                continue
-              fi
+            while read -r commit; do
+                # バージョンを進めないコミットタイプを定義
+                if [[ $commit == docs:* ]] || [[ $commit == style:* ]] || [[ $commit == test:* ]] || \
+                  [[ $commit == build:* ]] || [[ $commit == ci:* ]]; then
+                    continue
+                fi
 
-              SHOULD_BUMP=true
-              
-              if [[ $commit == feat!:* ]] || [[ $commit == fix!:* ]] || [[ $commit == *"BREAKING CHANGE"* ]]; then
-                BUMP_TYPE="major"
-                break
-              elif [[ $commit == feat:* ]] && [[ $BUMP_TYPE != "major" ]]; then
-                BUMP_TYPE="minor"
-              elif [[ $BUMP_TYPE != "major" ]] && [[ $BUMP_TYPE != "minor" ]]; then
-                BUMP_TYPE="patch"
-              fi
-            done
+                SHOULD_BUMP=true
+
+                if [[ $commit == feat!:* ]] || [[ $commit == fix!:* ]] || [[ $commit == *"BREAKING CHANGE"* ]]; then
+                    BUMP_TYPE="major"
+                    break
+                elif [[ $commit == feat:* ]] && [[ $BUMP_TYPE != "major" ]]; then
+                    BUMP_TYPE="minor"
+                elif [[ $BUMP_TYPE != "major" ]] && [[ $BUMP_TYPE != "minor" ]]; then
+                    BUMP_TYPE="patch"
+                fi
+            done <<< "$COMMITS"
             
             if [[ $SHOULD_BUMP == false ]]; then
               echo "No version bump required. Only documentation, style, test, build, or CI changes."
