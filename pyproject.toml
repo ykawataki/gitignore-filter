@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "gitignore-filter"
-version = "0.1.3"
+version = ""
 authors = [
     { name = "Yoshikazu Kawataki", email = "y.kawataki@gmail.com" },
 ]
