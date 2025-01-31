@@ -49,16 +49,33 @@ jobs:
             echo "Current version: $LATEST_VERSION"
             
             # conventional commitsからバージョンアップの種類を判断
-            BUMP_TYPE="patch"
+            BUMP_TYPE=""
+            SHOULD_BUMP=false
             
             echo "$COMMITS" | while read -r commit; do
+              # バージョンを進めないコミットタイプを定義
+              if [[ $commit == docs:* ]] || [[ $commit == style:* ]] || [[ $commit == test:* ]] || \
+                 [[ $commit == build:* ]] || [[ $commit == ci:* ]]; then
+                continue
+              fi
+
+              SHOULD_BUMP=true
+              
               if [[ $commit == feat!:* ]] || [[ $commit == fix!:* ]] || [[ $commit == *"BREAKING CHANGE"* ]]; then
                 BUMP_TYPE="major"
                 break
-              elif [[ $commit == feat:* ]]; then
+              elif [[ $commit == feat:* ]] && [[ $BUMP_TYPE != "major" ]]; then
                 BUMP_TYPE="minor"
+              elif [[ $BUMP_TYPE != "major" ]] && [[ $BUMP_TYPE != "minor" ]]; then
+                BUMP_TYPE="patch"
               fi
             done
+            
+            # バージョンを進めるべきコミットがない場合は終了
+            if [[ $SHOULD_BUMP == false ]]; then
+              echo "No version bump required. Only documentation, style, test, build, or CI changes."
+              exit 0
+            fi
             
             # 新しいバージョンを計算
             NEW_VERSION=$(npx semver $LATEST_VERSION -i $BUMP_TYPE)
