@@ -1,4 +1,8 @@
-# [](https://github.com/ykawataki/gitignore-filter/compare/v0.1.1...v) (2025-01-31)
+# [](https://github.com/ykawataki/gitignore-filter/compare/v0.1.2...v) (2025-01-31)
+
+
+
+## [0.1.2](https://github.com/ykawataki/gitignore-filter/compare/v0.1.1...v0.1.2) (2025-01-31)
 
 
 ### Bug Fixes
