@@ -29,6 +29,13 @@ A Python library that provides Git-compatible .gitignore pattern filtering with 
   - Configurable worker count for parallel processing
   - Integration with Git config settings
 
+- **Comprehensive Logging**:
+  - Configurable log levels
+  - Custom log formats
+  - File and console output options
+  - Per-operation logging configuration
+  - UTF-8 support for log messages
+
 ## Installation
 
 Install from PyPI:
@@ -45,7 +52,7 @@ pip install .
 
 ## Basic Usage
 
-### Python API
+### Simple Filtering
 
 ```python
 from gitignore_filter import git_ignore_filter
@@ -66,6 +73,33 @@ files = git_ignore_filter("./my_project", case_sensitive=True)
 
 # Configure parallel processing
 files = git_ignore_filter("./my_project", num_workers=4)
+```
+
+### Logging Configuration
+
+```python
+# Enable debug logging to console
+files = git_ignore_filter(
+    "./my_project",
+    log_level='DEBUG'
+)
+
+# Custom log format with file output
+files = git_ignore_filter(
+    "./my_project",
+    log_level='INFO',
+    log_format='%(asctime)s - %(levelname)s - %(message)s',
+    log_file='gitignore_filter.log'
+)
+
+# Log to file in append mode with specific encoding
+files = git_ignore_filter(
+    "./my_project",
+    log_level='DEBUG',
+    log_file='gitignore_filter.log',
+    log_file_mode='a',
+    log_encoding='utf-8'
+)
 ```
 
 ## Advanced Features
@@ -130,6 +164,32 @@ The library implements Git's pattern precedence rules:
 - Relative path return values
 - Permission error warnings
 - Pathspec-based implementation for simplicity
+
+### Logging Options
+
+- **Log Levels**: Support for standard Python log levels
+  - DEBUG: Detailed debugging information
+  - INFO: General information about processing
+  - WARNING: Warning messages for potential issues
+  - ERROR: Error messages for operation failures
+  - CRITICAL: Critical errors that prevent operation
+
+- **Output Destinations**:
+  - Console output (stderr)
+  - File output with configurable path
+  - Simultaneous console and file logging
+  - Append or overwrite mode for log files
+
+- **Format Customization**:
+  - Timestamp formatting
+  - Log level display
+  - Custom message formatting
+  - UTF-8 encoding support
+
+- **Per-Operation Configuration**:
+  - Independent logging settings for each operation
+  - Automatic cleanup after operation completion
+  - Thread-safe logging configuration
 
 ## Error Handling
 

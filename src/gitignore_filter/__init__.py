@@ -26,11 +26,18 @@ Example:
     並列処理を制御:
 
     >>> files = git_ignore_filter("./my_project", num_workers=4)
+
+    ロギングの設定:
+
+    >>> files = git_ignore_filter("./my_project", 
+    ...                          log_level='DEBUG',
+    ...                          log_format='%(asctime)s - %(levelname)s - %(message)s',
+    ...                          log_file='gitignore_filter.log')
 """
 
 from .core import git_ignore_filter
 
-__version__ = ""
+__version__ = "0.1.1"
 __author__ = "Yoshikazu Kawataki"
 __email__ = "y.kawataki@gmail.com"
 __license__ = "MIT"
