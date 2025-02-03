@@ -1,4 +1,9 @@
-# [](https://github.com/ykawataki/gitignore-filter/compare/v0.1.3...v) (2025-01-31)
+# [](https://github.com/ykawataki/gitignore-filter/compare/v0.1.3...v) (2025-02-03)
+
+
+### Features
+
+* add configurable logging functionality ([05fdd58](https://github.com/ykawataki/gitignore-filter/commit/05fdd580a52bb428b925480d71a45c269b3a6468))
 
 
 
