@@ -73,11 +73,11 @@ jobs:
             fi
             
             # 新しいバージョンを計算
-            NEW_VERSION=$(npx semver $LATEST_VERSION -i $BUMP_TYPE)
+            NEW_VERSION=$(semver $LATEST_VERSION -i $BUMP_TYPE)
           else
             echo "No tags found. Starting with v0.1.0"
-            NEW_VERSION="0.1.0"
-            SHOULD_BUMP=true
+            echo "should_bump=true" >> $GITHUB_OUTPUT
+            echo "new_version=0.1.0" >> $GITHUB_OUTPUT
           fi
 
           echo "New version will be: v$NEW_VERSION"

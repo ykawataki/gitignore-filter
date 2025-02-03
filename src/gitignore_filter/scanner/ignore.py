@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from ..patterns.pathspec import PathSpecPattern
+from ..utils.cache import get_global_cache
 from ..utils.path import normalize_path
 
 logger = logging.getLogger(__name__)
@@ -18,6 +19,7 @@ class GitIgnoreScanner:
         """
         self.case_sensitive = case_sensitive
         self._patterns: List[PathSpecPattern] = []
+        self._cache = get_global_cache()
 
     def read_file(self, path: Path) -> List[str]:
         """gitignoreファイルを読み込む"""
@@ -71,11 +73,16 @@ class GitIgnoreScanner:
 
         matched = False
         for pattern in self._patterns:
+            # キャッシュをチェック
+            cached_result = self._cache.get(pattern, path, is_dir)
             # パターンとのマッチをチェック
             if is_dir:
                 matches = pattern.match_directory(path)
             else:
                 matches = pattern.match(path)
+
+            # 結果をキャッシュに保存
+            self._cache.set(pattern, path, is_dir, matches)
 
             if pattern.negated and matches:
                 matched = False
