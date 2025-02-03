@@ -134,7 +134,8 @@ jobs:
         run: |
           NEW_VERSION="${{ needs.check-version.outputs.new_version }}"
           # conventional-changelogにバージョンを指定して実行
-          conventional-changelog -p angular -i CHANGELOG.md -s -r 0 --tag-prefix "v" --preset-name $NEW_VERSION
+          echo "{\"version\": \"$NEW_VERSION\"}" > /tmp/changelog-context.json
+          conventional-changelog -p angular -i CHANGELOG.md -s -r 0 -t "v" -c /tmp/changelog-context.json --verbose
 
       - name: Create version commit
         run: |
