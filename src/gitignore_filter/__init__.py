@@ -37,7 +37,7 @@ Example:
 
 from .core import git_ignore_filter
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 __author__ = "Yoshikazu Kawataki"
 __email__ = "y.kawataki@gmail.com"
 __license__ = "MIT"
