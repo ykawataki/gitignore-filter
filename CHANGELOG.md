@@ -1,3 +1,8 @@
+## [0.2.3](https://github.com/ykawataki/gitignore-filter/compare/v0.2.2...v0.2.3) (2025-03-06)
+
+### Bug Fixes
+
+* fixed bug with git_config not initialized ([a0c3055](https://github.com/ykawataki/gitignore-filter/commit/a0c3055961eb9f2677219564155781e0209c075b))
 ## [0.2.2](https://github.com/ykawataki/gitignore-filter/compare/v0.2.1...v0.2.2) (2025-02-04)
 ## [0.2.1](https://github.com/ykawataki/gitignore-filter/compare/v0.2.0...v0.2.1) (2025-02-03)
 ## [0.2.0](https://github.com/ykawataki/gitignore-filter/compare/v0.1.3...v0.2.0) (2025-02-03)
