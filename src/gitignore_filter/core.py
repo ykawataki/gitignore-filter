@@ -63,6 +63,7 @@ def git_ignore_filter(
             raise FileNotFoundError(f"Directory not found: {directory_path}")
 
         # Git設定を読み込む
+        git_config = None
         try:
             git_config = GitConfig()
             if case_sensitive is None:
